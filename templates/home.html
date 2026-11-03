@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}JTech Professional Learning Centre — Learn Online{% endblock %}
+
+{% block content %}
+<section class="jtech-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark mb-3 px-3 py-2">Online + Mobile App Available</span>
+                <h1 class="display-5 mb-3">Quality Learning for Every Indian Student</h1>
+                <p class="lead mb-4">11 industry-ready courses from <strong>₹499/month</strong>. Spoken English, Accounting, Tally+GST, Python, Django, AI/ML, and Hackathon prep — all in one platform.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'course_list' %}" class="btn btn-warning btn-lg fw-bold">
+                        <i class="bi bi-grid-3x3-gap"></i> Browse Courses
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-person-plus"></i> Sign Up Free
+                    </a>
+                </div>
+                <div class="mt-4 d-flex flex-wrap gap-3 text-light">
+                    <span><i class="bi bi-people-fill"></i> 10,000+ students</span>
+                    <span><i class="bi bi-wifi"></i> HD + Low-bandwidth</span>
+                    <span><i class="bi bi-phone"></i> Installable mobile app</span>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <i class="bi bi-mortarboard-fill" style="font-size: 12rem; opacity: .25;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Our Programmes</h2>
+        <p class="text-muted">Choose from 11 industry-aligned courses. Fees are monthly; enrol for the complete duration.</p>
+    </div>
+
+    <div class="row g-4">
+        {% for p in programmes %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card course-card h-100">
+                <div class="card-header" style="background: {{ p.color }};">
+                    <i class="bi bi-{{ p.icon }}"></i>
+                    <div>
+                        <div>{{ p.name }}</div>
+                        <small style="opacity:.9">{{ p.duration_months }} months</small>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text small text-muted flex-grow-1">{{ p.description|truncatewords:18 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <span class="fee-tag">₹{{ p.monthly_fee|intcomma }}/mo</span>
+                            <small class="text-muted d-block mt-1">Total ₹{{ p.total_fee|intcomma }}</small>
+                        </div>
+                        {% with c=p.courses.first %}
+                        {% if c %}
+                        <a href="{% url 'course_detail' slug=c.slug %}" class="btn btn-primary btn-sm">
+                            View <i class="bi bi-arrow-right"></i>
+                        </a>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <hr class="my-5">
+
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Recommended Learning Pathways</h2>
+        <p class="text-muted">Save more by combining related courses into a structured career path.</p>
+    </div>
+
+    <div class="row g-3">
+        {% for p in pathways %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body pathway-badge" style="--pathway-color: {{ p.badge_color }};">
+                    <h5 class="card-title mb-1">
+                        <i class="bi bi-{{ p.icon }}" style="color: {{ p.badge_color }};"></i>
+                        {{ p.name }}
+                    </h5>
+                    <p class="text-muted small mb-2">{{ p.description }}</p>
+                    <p class="small mb-2"><strong>{{ p.steps.count }} courses</strong> · {{ p.total_months }} months total</p>
+                    <a href="{% url 'pathway_detail' slug=p.slug %}" class="btn btn-sm btn-outline-primary">View pathway →</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row text-center">
+        <div class="col-md-4 mb-3">
+            <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+                <i class="bi bi-wifi text-primary" style="font-size: 2rem;"></i>
+                <h5 class="mt-2">Dual Bandwidth</h5>
+                <p class="text-muted small mb-0">HD video for tier-1 cities; low-bandwidth mode + downloads for tier-2/3.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+                <i class="bi bi-phone text-primary" style="font-size: 2rem;"></i>
+                <h5 class="mt-2">Mobile App</h5>
+                <p class="text-muted small mb-0">Install JTech LMS as a native-style app on Android & iOS — study anywhere.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+                <i class="bi bi-award text-primary" style="font-size: 2rem;"></i>
+                <h5 class="mt-2">Verified Certificates</h5>
+                <p class="text-muted small mb-0">Auto-issued on completion, with QR-verifiable links.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

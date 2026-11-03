@@ -1,0 +1,134 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="JTech Professional Learning Centre — Online LMS for Spoken English, Computer, Accounting, Python, Django, AI/ML and Hackathon prep.">
+
+    <!-- PWA -->
+    <link rel="manifest" href="{% url 'pwa_manifest' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/icon-192.png' %}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="JTech LMS">
+
+    <title>{% block title %}JTech Professional Learning Centre{% endblock %}</title>
+
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{% static 'css/jtech.css' %}" rel="stylesheet">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark jtech-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+            <i class="bi bi-mortarboard-fill"></i> JTech <span class="text-warning">LMS</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'course_list' %}">Courses</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'pathway_list' %}">Pathways</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                    {% if user.is_instructor %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'instructors:instructor_dashboard' %}"><i class="bi bi-easel"></i> Teach</a></li>
+                    {% endif %}
+                    {% if user.is_student %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_dashboard' %}"><i class="bi bi-grid"></i> Dashboard</a></li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
+                            <i class="bi bi-person-circle"></i> {{ user.display_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'switch_quality' %}">
+                                    {% csrf_token %}
+                                    <button class="dropdown-item" type="submit" name="tier" value="{% if user.tier == 'tier1' %}tier2{% else %}tier1{% endif %}">
+                                        <i class="bi bi-{% if user.tier == 'tier1' %}wifi{% else %}wifi-off{% endif %}"></i>
+                                        Switch to {% if user.tier == 'tier1' %}Low-bandwidth (Tier-2/3){% else %}HD (Tier-1){% endif %}
+                                    </button>
+                                </form>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                    <li class="nav-item"><a class="btn btn-warning btn-sm mt-1" href="{% url 'register' %}">Sign Up Free</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{% if messages %}
+<div class="container mt-3">
+    {% for m in messages %}
+    <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show">
+        {{ m }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main class="py-4">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="jtech-footer mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="fw-bold"><i class="bi bi-mortarboard-fill"></i> JTech LMS</h5>
+                <p class="small text-muted">JTech Professional Learning Centre — Quality online learning for tier-1, tier-2 and tier-3 India.</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Programmes</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="{% url 'course_list' %}" class="text-muted text-decoration-none">All Courses</a></li>
+                    <li><a href="{% url 'pathway_list' %}" class="text-muted text-decoration-none">Learning Pathways</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Support</h6>
+                <ul class="list-unstyled small">
+                    <li class="text-muted">support@jtechlearning.in</li>
+                    <li class="text-muted">+91-XXXXX-XXXXX</li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary">
+        <p class="text-center text-muted small mb-0">© {% now "Y" %} JTech Professional Learning Centre. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- PWA service worker registration -->
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('{% url "pwa_sw" %}')
+            .then(reg => console.log('SW registered', reg.scope))
+            .catch(err => console.warn('SW failed', err));
+    });
+}
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

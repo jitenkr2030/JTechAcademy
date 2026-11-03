@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ course.title }} — JTech LMS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item active">{{ course.programme.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header text-white py-4" style="background: {{ course.programme.color }};">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-{{ course.programme.icon }}" style="font-size: 2.5rem;"></i>
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold">{{ course.title }}</h1>
+                            <p class="mb-0 opacity-75">{{ course.subtitle }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ course.description }}</p>
+
+                    {% if course.learning_outcomes %}
+                    <h5 class="mt-4 fw-bold"><i class="bi bi-check2-circle text-success"></i> What you'll learn</h5>
+                    <ul class="mt-2">
+                        {% for line in course.learning_outcomes.splitlines %}
+                        {% if line.strip %}<li>{{ line.strip }}</li>{% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    {% if course.prerequisites %}
+                    <h5 class="mt-4 fw-bold"><i class="bi bi-info-circle text-primary"></i> Prerequisites</h5>
+                    <p>{{ course.prerequisites }}</p>
+                    {% endif %}
+
+                    <h5 class="mt-4 fw-bold"><i class="bi bi-list-ul text-primary"></i> Course Content</h5>
+                    <p class="text-muted small mb-3">
+                        {{ course.total_lessons }} lessons · {{ course.total_duration_minutes }} minutes of content ·
+                        {{ course.programme.duration_months }} months duration
+                    </p>
+
+                    <div class="accordion" id="modulesAccordion">
+                        {% for m in modules %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                                        type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#mod{{ m.id }}">
+                                    <strong>Module {{ forloop.counter }}: {{ m.title }}</strong>
+                                    <span class="ms-auto small text-muted">{{ m.lesson_count }} lessons</span>
+                                </button>
+                            </h2>
+                            <div id="mod{{ m.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}">
+                                <div class="accordion-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        {% for l in m.lessons.all %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="bi bi-{% if l.lesson_type == 'video' %}play-circle{% elif l.lesson_type == 'live' %}broadcast{% elif l.lesson_type == 'assignment' %}file-earmark-text{% elif l.lesson_type == 'quiz' %}question-circle{% else %}journal-text{% endif %} text-primary"></i>
+                                                <a href="{% url 'progress:lesson_player' lesson_id=l.id %}" class="text-decoration-none {% if l.id in completed_lesson_ids %}text-success{% endif %}">
+                                                    {{ l.title }}
+                                                    {% if l.id in completed_lesson_ids %}<i class="bi bi-check-circle-fill text-success ms-1"></i>{% endif %}
+                                                    {% if l.is_preview %}<span class="badge bg-success-subtle text-success ms-1">Free Preview</span>{% endif %}
+                                                </a>
+                                            </div>
+                                            <small class="text-muted">{{ l.duration_minutes }}m</small>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="fw-bold text-primary mb-0">₹{{ course.programme.monthly_fee|intcomma }}<span class="fs-6 text-muted">/month</span></h2>
+                        <p class="text-muted small mt-1 mb-0">
+                            or ₹{{ course.programme.total_fee|intcomma }} for full {{ course.programme.duration_months }}-month course
+                        </p>
+                    </div>
+
+                    <div class="list-unstyled small mb-3">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span><i class="bi bi-clock"></i> Duration</span>
+                            <strong>{{ course.programme.duration_months }} months</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span><i class="bi bi-list-check"></i> Lessons</span>
+                            <strong>{{ course.total_lessons }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span><i class="bi bi-wifi"></i> HD + Low BW</span>
+                            <strong>✓ Both</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span><i class="bi bi-phone"></i> Mobile</span>
+                            <strong>✓ Yes</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span><i class="bi bi-award"></i> Certificate</span>
+                            <strong>✓ Verified</strong>
+                        </div>
+                    </div>
+
+                    {% if enrollment %}
+                        {% if enrollment.can_access_content %}
+                            <a href="{% url 'progress:lesson_player' lesson_id=course.modules.first.lessons.first.id %}" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-play-fill"></i> Continue Learning
+                            </a>
+                            <p class="text-center text-muted small mt-2 mb-0">
+                                Status: {{ enrollment.get_status_display }}<br>
+                                {% if enrollment.next_billing_date %}
+                                Next billing: {{ enrollment.next_billing_date|date:"d M Y" }}
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <strong>Enrollment inactive.</strong><br>
+                                <small>{{ enrollment.get_status_display }}</small>
+                            </div>
+                            <form method="post" action="{% url 'enrollments:pay_now' enrollment_id=enrollment.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-warning btn-lg w-100">Pay ₹{{ enrollment.monthly_fee|intcomma }} & Resume</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <form method="post" action="{% url 'enrollments:enroll' course_id=course.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_mode" value="monthly">
+                            <button class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-cart-check"></i> Enrol Monthly (₹{{ course.programme.monthly_fee|intcomma }}/mo)
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'enrollments:enroll' course_id=course.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_mode" value="full">
+                            <button class="btn btn-outline-primary btn-sm w-100 mt-2">
+                                Pay Full ₹{{ course.programme.total_fee|intcomma }} (One-time)
+                            </button>
+                        </form>
+                        {% if not user.is_authenticated %}
+                        <p class="text-center text-muted small mt-2 mb-0">You'll need to sign up first.</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

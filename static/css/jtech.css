@@ -1,0 +1,188 @@
+/* JTech LMS — Custom Styles */
+:root {
+    --jtech-primary: #2563eb;
+    --jtech-dark:    #0f172a;
+    --jtech-accent:  #f59e0b;
+}
+
+body {
+    background: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+}
+
+.jtech-navbar {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.15);
+}
+
+.jtech-navbar .nav-link:hover {
+    color: #fcd34d !important;
+}
+
+.jtech-footer {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.jtech-footer a:hover { color: #fcd34d !important; }
+
+.jtech-hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0ea5e9 100%);
+    color: white;
+    padding: 5rem 0 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.jtech-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+    border-radius: 50%;
+}
+
+.jtech-hero h1 { font-weight: 800; }
+
+.course-card {
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+    height: 100%;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.course-card .card-header {
+    border: none;
+    color: white;
+    font-weight: 700;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.course-card .card-header i { font-size: 1.5rem; }
+
+.fee-tag {
+    background: #fef3c7;
+    color: #92400e;
+    font-weight: 700;
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    font-size: .85rem;
+    display: inline-block;
+}
+
+.pathway-badge {
+    border-left: 4px solid var(--pathway-color, #7c3aed);
+    padding-left: 1rem;
+}
+
+.lesson-video-wrap {
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    position: relative;
+}
+
+.lesson-sidebar {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.lesson-item {
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    border: 1px solid #e2e8f0;
+    margin-bottom: .5rem;
+    transition: all .15s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+}
+
+.lesson-item:hover {
+    background: #eff6ff;
+    border-color: var(--jtech-primary);
+}
+
+.lesson-item.active {
+    background: var(--jtech-primary);
+    color: white;
+    border-color: var(--jtech-primary);
+}
+
+.lesson-item.completed .lesson-check { color: #16a34a; }
+.lesson-item.active.completed .lesson-check { color: #fcd34d; }
+
+.quality-switcher {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(15, 23, 42, 0.75);
+    border-radius: 8px;
+    padding: .35rem;
+    display: flex;
+    gap: .25rem;
+    z-index: 10;
+}
+
+.quality-switcher button {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    font-size: .8rem;
+    padding: .25rem .65rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.quality-switcher button.active {
+    background: var(--jtech-primary);
+    color: white;
+}
+
+.progress-bar-thin { height: 8px; border-radius: 999px; }
+
+@media (max-width: 768px) {
+    .lesson-sidebar { max-height: 40vh; }
+    .jtech-hero h1 { font-size: 1.75rem; }
+}
+
+.offline-banner {
+    background: #f59e0b;
+    color: #0f172a;
+    text-align: center;
+    padding: .35rem;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.certificate {
+    border: 8px double #1e3a8a;
+    padding: 3rem;
+    background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+    text-align: center;
+}
+
+.certificate-id {
+    font-family: monospace;
+    background: #1e293b;
+    color: #fcd34d;
+    padding: .35rem .75rem;
+    border-radius: 4px;
+    display: inline-block;
+    font-size: .85rem;
+}

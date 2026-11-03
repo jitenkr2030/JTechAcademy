@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Student Dashboard — JTech LMS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="fw-bold mb-0">Welcome, {{ user.display_name }} 👋</h1>
+            <p class="text-muted mb-0">Continue where you left off.</p>
+        </div>
+        <div>
+            <a href="{% url 'course_list' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Browse Courses</a>
+        </div>
+    </div>
+
+    {% if not dashboard_data %}
+    <div class="alert alert-info">
+        <strong>You haven't enrolled in any courses yet.</strong>
+        <a href="{% url 'course_list' %}" class="alert-link">Browse our programmes</a> to get started.
+    </div>
+    {% else %}
+    <h3 class="fw-bold mb-3"><i class="bi bi-journal-bookmark-fill text-primary"></i> My Courses</h3>
+    <div class="row g-4">
+        {% for item in dashboard_data %}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header text-white py-3" style="background: {{ item.enrollment.course.programme.color }};">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ item.enrollment.course.programme.icon }}"></i>
+                        <strong>{{ item.enrollment.course.title }}</strong>
+                        <span class="ms-auto small">{{ item.enrollment.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>{{ item.completed_lessons }}/{{ item.total_lessons }} lessons complete</span>
+                        <span>{{ item.progress_pct }}%</span>
+                    </div>
+                    <div class="progress progress-bar-thin mb-3">
+                        <div class="progress-bar bg-success" style="width: {{ item.progress_pct }}%"></div>
+                    </div>
+
+                    {% if item.next_lesson %}
+                    <a href="{% url 'progress:lesson_player' lesson_id=item.next_lesson.id %}" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-play-fill"></i> Continue: {{ item.next_lesson.title|truncatechars:40 }}
+                    </a>
+                    {% else %}
+                    <div class="alert alert-success small mb-0">
+                        🎉 Course complete! Certificate issued.
+                        {% if item.enrollment.certificate %}
+                        <a href="{% url 'progress:view_certificate' certificate_id=item.enrollment.certificate.certificate_id %}" class="alert-link">View certificate →</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-2 small text-muted d-flex justify-content-between">
+                        <span>Monthly: ₹{{ item.enrollment.monthly_fee|intcomma }}</span>
+                        {% if item.enrollment.next_billing_date %}
+                        <span>Next bill: {{ item.enrollment.next_billing_date|date:"d M Y" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if recommended %}
+    <hr class="my-5">
+    <h3 class="fw-bold mb-3"><i class="bi bi-stars text-warning"></i> Recommended for You</h3>
+    <div class="row g-3">
+        {% for c in recommended %}
+        <div class="col-md-3">
+            <a href="{% url 'course_detail' slug=c.slug %}" class="card border-0 shadow-sm h-100 text-decoration-none">
+                <div class="card-header text-white small" style="background: {{ c.programme.color }};">
+                    <i class="bi bi-{{ c.programme.icon }}"></i> {{ c.programme.name }}
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-0">{{ c.subtitle|truncatewords:12 }}</p>
+                    <span class="fee-tag mt-2">₹{{ c.programme.monthly_fee|intcomma }}/mo</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

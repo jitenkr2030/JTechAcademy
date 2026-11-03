@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lesson.title }} — {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-3">
+    <div class="row g-3">
+        <!-- Main video area -->
+        <div class="col-lg-9">
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="{% url 'course_detail' slug=course.slug %}">{{ course.title }}</a></li>
+                    <li class="breadcrumb-item">{{ module.title }}</li>
+                    <li class="breadcrumb-item active">{{ lesson.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="lesson-video-wrap">
+                <!-- Quality switcher overlay -->
+                {% if lesson.video and lesson.video.has_hd and lesson.video.has_sd %}
+                <div class="quality-switcher">
+                    <button id="btn-hd" class="{% if user_tier == 'tier1' %}active{% endif %}" data-quality="hd">
+                        <i class="bi bi-wifi"></i> HD
+                    </button>
+                    <button id="btn-sd" class="{% if user_tier == 'tier2' %}active{% endif %}" data-quality="sd">
+                        <i class="bi bi-phone"></i> Low BW
+                    </button>
+                </div>
+                {% endif %}
+
+                <video id="lesson-video" class="w-100 h-100"
+                       controls
+                       poster="{% if lesson.video.poster %}{{ lesson.video.poster.url }}{% endif %}"
+                       preload="metadata">
+                    {% if lesson.video %}
+                        <source id="video-src-hd" src="{{ lesson.video.hd_source }}" type="video/mp4" {% if user_tier != 'tier1' %}disabled{% endif %}>
+                        <source id="video-src-sd" src="{{ lesson.video.sd_source }}" type="video/mp4">
+                    {% endif %}
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            {% if not lesson.video or not lesson.video.has_hd and not lesson.video.has_sd %}
+                {% if user.is_instructor or user.is_staff %}
+                <div class="alert alert-info mt-2 small">
+                    <i class="bi bi-info-circle"></i> No video attached yet.
+                    <a href="{% url 'instructors:video_attach' lesson_id=lesson.id %}" class="alert-link">Attach HD + Low BW videos →</a>
+                </div>
+                {% else %}
+                <div class="alert alert-warning mt-2 small">
+                    <i class="bi bi-clock-history"></i> Video is being processed. Please check back soon.
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <div>
+                    <h2 class="h4 mb-0 fw-bold">{{ lesson.title }}</h2>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-clock"></i> {{ lesson.duration_minutes }} min ·
+                        <i class="bi bi-{{ lesson.lesson_type }}"></i> {{ lesson.get_lesson_type_display }}
+                        {% if lesson.is_preview %}<span class="badge bg-success-subtle text-success">Free Preview</span>{% endif %}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if prev_lesson %}
+                    <a href="{% url 'progress:lesson_player' lesson_id=prev_lesson.id %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </a>
+                    {% endif %}
+                    <button id="mark-complete-btn"
+                            class="btn {% if progress.completed %}btn-success{% else %}btn-primary{% endif %} btn-sm"
+                            {% if not enrollment %}disabled{% endif %}>
+                        {% if progress.completed %}
+                        <i class="bi bi-check-circle-fill"></i> Completed
+                        {% else %}
+                        <i class="bi bi-check2"></i> Mark Complete
+                        {% endif %}
+                    </button>
+                    {% if next_lesson %}
+                    <a href="{% url 'progress:lesson_player' lesson_id=next_lesson.id %}" class="btn btn-primary btn-sm">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if lesson.description %}
+            <div class="card mt-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold text-muted">About this lesson</h6>
+                    <p class="mb-0">{{ lesson.description }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if lesson.resources.all %}
+            <div class="card mt-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold"><i class="bi bi-paperclip"></i> Resources</h6>
+                    <ul class="list-unstyled mb-0">
+                        {% for r in lesson.resources.all %}
+                        <li class="mb-1">
+                            {% if r.file %}
+                            <a href="{{ r.file.url }}" download class="text-decoration-none">
+                                <i class="bi bi-download"></i> {{ r.title }}
+                            </a>
+                            {% elif r.external_url %}
+                            <a href="{{ r.external_url }}" target="_blank" class="text-decoration-none">
+                                <i class="bi bi-box-arrow-up-right"></i> {{ r.title }}
+                            </a>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user_tier == 'tier2' and lesson.video and lesson.video.sd_file %}
+            <div class="alert alert-info mt-3 small">
+                <i class="bi bi-download"></i> <strong>Tier-2/3 mode active.</strong>
+                You're watching the low-bandwidth version.
+                <a href="{{ lesson.video.sd_file.url }}" download class="alert-link">Download this video for offline study →</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar: course outline -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-2">
+                    <strong><i class="bi bi-list-ul"></i> Course Content</strong>
+                </div>
+                <div class="card-body p-2 lesson-sidebar">
+                    {% for m in course.modules.all %}
+                    <div class="fw-bold small text-muted mt-2 mb-1 text-uppercase">{{ m.title }}</div>
+                    {% for l in m.lessons.all %}
+                    <a href="{% url 'progress:lesson_player' lesson_id=l.id %}"
+                       class="lesson-item {% if l.id == lesson.id %}active{% endif %} {% if l.id in completed_ids %}completed{% endif %} small">
+                        <i class="bi bi-{% if l.id in completed_ids %}check-circle-fill lesson-check{% elif l.lesson_type == 'video' %}play-circle{% elif l.lesson_type == 'live' %}broadcast{% elif l.lesson_type == 'assignment' %}file-earmark-text{% elif l.lesson_type == 'quiz' %}question-circle{% else %}journal{% endif %}"></i>
+                        <span class="flex-grow-1">{{ l.title }}</span>
+                        <small>{{ l.duration_minutes }}m</small>
+                    </a>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if enrollment %}
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="fw-bold">Your Progress</h6>
+                    {% widthratio completed_ids|length course.total_lessons 100 as pct %}
+                    <div class="progress progress-bar-thin mb-2">
+                        <div class="progress-bar bg-success" style="width: {{ pct }}%"></div>
+                    </div>
+                    <p class="small text-muted mb-0">{{ completed_ids|length }} of {{ course.total_lessons }} lessons complete</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const video = document.getElementById('lesson-video');
+    const btnHd = document.getElementById('btn-hd');
+    const btnSd = document.getElementById('btn-sd');
+    const markCompleteBtn = document.getElementById('mark-complete-btn');
+    const LESSON_ID = {{ lesson.id }};
+    const CSRF = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                 getCookie('csrftoken');
+
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+
+    // -- Quality switcher (HD <-> Low bandwidth) --
+    function switchQuality(q) {
+        if (!video) return;
+        const currentTime = video.currentTime;
+        const wasPlaying = !video.paused;
+        const srcHd = document.getElementById('video-src-hd');
+        const srcSd = document.getElementById('video-src-sd');
+        // Re-order sources so the chosen one is first
+        if (q === 'hd' && srcHd) {
+            video.insertBefore(srcHd, video.firstChild);
+        } else if (q === 'sd' && srcSd) {
+            video.insertBefore(srcSd, video.firstChild);
+        }
+        video.load();
+        video.currentTime = currentTime;
+        if (wasPlaying) video.play();
+        if (btnHd) btnHd.classList.toggle('active', q === 'hd');
+        if (btnSd) btnSd.classList.toggle('active', q === 'sd');
+        // Persist preference
+        localStorage.setItem('jtech-quality', q);
+    }
+    if (btnHd) btnHd.addEventListener('click', () => switchQuality('hd'));
+    if (btnSd) btnSd.addEventListener('click', () => switchQuality('sd'));
+
+    // -- Position + watch-percent tracking --
+    let lastSave = 0;
+    video?.addEventListener('timeupdate', () => {
+        const now = Date.now();
+        if (now - lastSave < 5000) return; // throttle to every 5s
+        lastSave = now;
+        const pct = video.duration ? Math.round((video.currentTime / video.duration) * 100) : 0;
+        fetch(`/learn/lesson/${LESSON_ID}/save-position/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+            body: JSON.stringify({position: Math.round(video.currentTime), watch_percent: pct})
+        }).then(r => r.json()).then(d => {
+            if (d.auto_completed && markCompleteBtn && !markCompleteBtn.classList.contains('btn-success')) {
+                markCompleteBtn.classList.remove('btn-primary');
+                markCompleteBtn.classList.add('btn-success');
+                markCompleteBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+            }
+        }).catch(() => {});
+    });
+
+    // -- Mark complete button --
+    if (markCompleteBtn) {
+        markCompleteBtn.addEventListener('click', () => {
+            fetch(`/learn/lesson/${LESSON_ID}/mark-complete/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': CSRF}
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'completed' && d.certificate_url) {
+                    alert('🎉 Course complete! Your certificate has been issued.');
+                    window.location.href = d.certificate_url;
+                } else {
+                    markCompleteBtn.classList.remove('btn-primary');
+                    markCompleteBtn.classList.add('btn-success');
+                    markCompleteBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+                }
+            }).catch(err => alert('Could not mark complete. Please try again.'));
+        });
+    }
+
+    // -- Restore resume position --
+    {% if progress and progress.last_position_seconds %}
+    video?.addEventListener('loadedmetadata', () => {
+        video.currentTime = {{ progress.last_position_seconds }};
+    });
+    {% endif %}
+})();
+</script>
+{% endblock %}

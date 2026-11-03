@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ pathway.name }} — JTech LMS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'pathway_list' %}">Pathways</a></li>
+            <li class="breadcrumb-item active">{{ pathway.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="card border-0 shadow-sm mb-4 pathway-badge" style="--pathway-color: {{ pathway.badge_color }};">
+        <div class="card-body">
+            <h1 class="fw-bold"><i class="bi bi-{{ pathway.icon }}" style="color: {{ pathway.badge_color }};"></i> {{ pathway.name }}</h1>
+            <p class="lead">{{ pathway.description }}</p>
+            <div class="row text-center mt-4">
+                <div class="col-4">
+                    <h3 class="fw-bold">{{ pathway.steps.count }}</h3>
+                    <small class="text-muted">Courses</small>
+                </div>
+                <div class="col-4">
+                    <h3 class="fw-bold">{{ pathway.total_months }}</h3>
+                    <small class="text-muted">Months total</small>
+                </div>
+                <div class="col-4">
+                    <h3 class="fw-bold">₹{{ pathway.total_fee|intcomma }}</h3>
+                    <small class="text-muted">Total fee</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="fw-bold mb-3">Your Learning Journey</h3>
+    <div class="row">
+        {% for step in steps %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header text-white d-flex justify-content-between align-items-center"
+                     style="background: {{ step.programme.color }};">
+                    <span><i class="bi bi-{{ step.programme.icon }}"></i> Step {{ forloop.counter }}</span>
+                    <span class="badge bg-light text-dark">{{ step.programme.duration_months }} months</span>
+                </div>
+                <div class="card-body">
+                    <h5>{{ step.programme.name }}</h5>
+                    {% if step.note %}<p class="text-muted small">{{ step.note }}</p>{% endif %}
+                    <p class="small text-muted">{{ step.programme.description|truncatewords:18 }}</p>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fee-tag">₹{{ step.programme.monthly_fee|intcomma }}/mo</span>
+                        {% with c=step.programme.courses.first %}
+                        {% if c %}
+                        <a href="{% url 'course_detail' slug=c.slug %}" class="btn btn-sm btn-primary">View</a>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

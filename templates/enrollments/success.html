@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Enrolled Successfully — JTech LMS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+                    <h1 class="fw-bold">You're enrolled!</h1>
+                    <p class="lead text-muted">{{ enrollment.course.title }}</p>
+
+                    <div class="row text-center mt-4 mb-3">
+                        <div class="col-6 border-end">
+                            <h3 class="fw-bold text-primary mb-0">₹{{ enrollment.monthly_fee|intcomma }}</h3>
+                            <small class="text-muted">Monthly fee</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="fw-bold text-primary mb-0">{{ enrollment.course.programme.duration_months }} months</h3>
+                            <small class="text-muted">Course duration</small>
+                        </div>
+                    </div>
+
+                    <div class="alert {% if enrollment.payment_mode == 'monthly' %}alert-info{% else %}alert-success{% endif %} small">
+                        {% if enrollment.payment_mode == 'monthly' %}
+                        <strong>Monthly subscription active.</strong>
+                        Next billing: {{ enrollment.next_billing_date|date:"d M Y" }}<br>
+                        You'll retain access as long as your subscription is active.
+                        {% else %}
+                        <strong>Full payment received.</strong>
+                        You have lifetime access to this course.
+                        {% endif %}
+                    </div>
+
+                    <a href="{% url 'progress:lesson_player' lesson_id=enrollment.course.modules.first.lessons.first.id %}"
+                       class="btn btn-success btn-lg mt-2">
+                        <i class="bi bi-play-fill"></i> Start Learning
+                    </a>
+                    <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary btn-lg mt-2 ms-2">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

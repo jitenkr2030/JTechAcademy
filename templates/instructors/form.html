@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="fw-bold">{{ title }}</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        {% if course %}
+                        <a href="{% url 'instructors:course_overview' course_id=course.id %}" class="btn btn-link">Cancel</a>
+                        {% elif module %}
+                        <a href="{% url 'instructors:course_overview' course_id=module.course.id %}" class="btn btn-link">Cancel</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
